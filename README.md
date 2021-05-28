@@ -1,5 +1,4 @@
-# app
-
+# Header Vue JS
 ## Project setup
 ```
 npm install
