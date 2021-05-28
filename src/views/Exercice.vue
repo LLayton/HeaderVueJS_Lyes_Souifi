@@ -1,80 +1,22 @@
 <template>
   <div class="container-fluid">
-    <div>
-      <div class="card mb-2 mt-2">
-        <div class="card-header p-3">
-          <h1>VueJS example</h1>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-2">
-              <button class="btn btn-primary" @click="fetchUsers">
-                Fetch all users
-              </button>
-            </div>
-            <Listview :options="['All','male','female']" v-model="gender" />
-            <input v-model="search" placeholder="modifiez-moi">
-            <div class="col-md-2">
-              <span class="lead">{{ filteredList.length }} lignes</span>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="card-header p-3">
+       <h1>VueJS example</h1>
     </div>
-    <div class="card">
-      <div class="card-body">
-        <table id="tbl-users" class="table table-hover">
-          <thead>
-            <tr>
-              <th />
-              <th
-                :class="[sortBy === 'name' ? sortDirection : '']"
-                @click="sort('name')"
-              >
-                Nom
-              </th>
-              <th
-                :class="[sortBy === 'email' ? sortDirection : '']"
-                @click="sort('email')"
-              >
-                Email
-              </th>
-              <th
-                :class="[sortBy === 'phone' ? sortDirection : '']"
-                @click="sort('phone')"
-              >
-                Tel
-              </th>
-              <th
-                :class="[sortBy === 'age' ? sortDirection : '']"
-                @click="sort('age')"
-              >
-                Naissance
-              </th>
-              <th>Gender</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="user in filteredList" :key="user.email">
-              <td><img :src="user.avatar" /></td>
-              <td v-html="user.nameFormated" />
-              <td>{{ user.email }}</td>
-              <td>{{ user.phone }}</td>
-              <td>{{ user.age }}</td>
-              <td>{{ user.gender }}</td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="card-body">
+      <div class="row">
+         <ListView :options="['All','Male','Female']" :value="gender" @input="setGender" />
       </div>
     </div>
   </div>
 </template>
 <script>
 import axios from "axios";
-import Listview from "../components/Listview.vue"
+import ListView from '../components/Listview.vue';
 export default {
-  components:{
-    Listview,
+  name: 'Exercice',
+  components: {
+    ListView
   },
   data() {
     return {
@@ -134,6 +76,7 @@ export default {
     },
   },
   methods: {
+
     sort(sortby) {
       if (sortby === this.sortBy) {
         if (this.sortDirection === "desc") {
@@ -165,4 +108,4 @@ export default {
     },
   },
 };
-</script>
+<script/>
