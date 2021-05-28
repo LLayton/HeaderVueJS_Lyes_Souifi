@@ -12,8 +12,9 @@
                 Fetch all users
               </button>
             </div>
-            <Listview :options="['All','male','female']" v-model="gender" />
-            <input v-model="search" placeholder="modifiez-moi">
+            <Listview :options="['All', 'male', 'female']" v-model="gender" />
+            <input v-model="search" placeholder="modifiez-moi" />
+            <img v-show="loading" src="../../img/loading.gif" alt="image animé de chargement">
             <div class="col-md-2">
               <span class="lead">{{ filteredList.length }} lignes</span>
             </div>
@@ -71,9 +72,9 @@
 </template>
 <script>
 import axios from "axios";
-import Listview from "../components/Listview.vue"
+import Listview from "../components/Listview.vue";
 export default {
-  components:{
+  components: {
     Listview,
   },
   data() {
@@ -84,6 +85,7 @@ export default {
       sortBy: "",
       sortDirection: "asc",
       search: "",
+      loading:false,
     };
   },
   computed: {
@@ -106,7 +108,7 @@ export default {
           )
           // Filtre par genres
           .filter((user) => {
-            if (this.gender === "") return true;
+            if (this.gender === "All" || this.gender === "") return true;
             return user.gender === this.gender;
           })
           // tri par ordre alphabétique
@@ -133,6 +135,12 @@ export default {
       );
     },
   },
+  created() {
+    console.log(this.loading);
+    setTimeout(this.fetchUsers(),300);
+    console.log(this.loading);
+  },
+
   methods: {
     sort(sortby) {
       if (sortby === this.sortBy) {
@@ -150,18 +158,23 @@ export default {
       this.sortBy = sortby;
     },
     fetchUsers() {
-      axios("https://randomuser.me/api/?results=20").then(
-        ({ data: { results } }) => {
-          this.nonFilteredUsers = results.map((user) => ({
-            age: user.dob.age,
-            name: `${user.name.first} ${user.name.last.toUpperCase()}`,
+      this.loading=true;
+      
+      axios("https://ynov-front.herokuapp.com/api/users").then(
+        ({ data: { data } }) => {
+          console.log(data)
+          this.nonFilteredUsers = data.map((user) => ({
+            age: new Date(Date.now() - new Date(user.birthDate).getTime()).getFullYear() - 1970,
+            name: `${user.firstName} ${user.lastName}`,
             email: user.email,
             phone: user.phone,
             gender: user.gender,
-            avatar: user.picture.thumbnail,
+            avatar: user.avatarUrl,
           }));
         }
-      );
+      )
+      this.loading=false;
+
     },
   },
 };
