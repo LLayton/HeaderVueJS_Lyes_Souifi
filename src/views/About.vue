@@ -4,18 +4,24 @@
       <div class="card mb-2 mt-2">
         <div class="card-header p-3">
           <h1>VueJS example</h1>
-        </div>
-        <div class="card-body">
+
           <div class="row">
-            <div class="col-md-2">
+            <div class="col-md-4">
               <button class="btn btn-primary" @click="fetchUsers">
                 Fetch all users
               </button>
             </div>
-            <Listview :options="['All', 'male', 'female']" v-model="gender" />
-            <input v-model="search" placeholder="modifiez-moi" />
-            <img v-show="loading" src="../../img/loading.gif" alt="image animé de chargement">
-            <div class="col-md-2">
+            <div class="col-md-4">
+              <input v-model="search" placeholder="Ecrivez texte" />
+            </div>
+            <div class="col-md-4">
+              <Listview :options="['All', 'male', 'female']" v-model="gender" />
+            </div>
+
+            <div class="col-md-4">
+              <b-spinner v-show="loading"></b-spinner>
+            </div>
+            <div class="col-md-4">
               <span class="lead">{{ filteredList.length }} lignes</span>
             </div>
           </div>
@@ -53,16 +59,35 @@
                 Naissance
               </th>
               <th>Gender</th>
+              <th>Modifier</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in filteredList" :key="user.email">
-              <td><img :src="user.avatar" /></td>
+            <tr
+              v-for="user in filteredList"
+              :key="user.email"
+              class="align-middle"
+            >
+              <td class="w-25 p-3 mb-1">
+                <img class="w-75 p-3 mb-1 rounded" :src="user.avatar" />
+              </td>
               <td v-html="user.nameFormated" />
               <td>{{ user.email }}</td>
               <td>{{ user.phone }}</td>
               <td>{{ user.age }}</td>
               <td>{{ user.gender }}</td>
+              <td>
+                <router-link :to="{ path: '/users/update/' + user.id }"
+                  ><button class="btn btn-warning">
+                    Modifier
+                  </button></router-link
+                >
+              </td>
+              <td>
+                <button class="btn btn-warning" @click="DeleteUser(user.id)">
+                  Suprimer
+                </button>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -70,9 +95,11 @@
     </div>
   </div>
 </template>
+
 <script>
 import axios from "axios";
 import Listview from "../components/Listview.vue";
+
 export default {
   components: {
     Listview,
@@ -85,7 +112,8 @@ export default {
       sortBy: "",
       sortDirection: "asc",
       search: "",
-      loading:false,
+      loading: false,
+      modalShow: false,
     };
   },
   computed: {
@@ -136,12 +164,17 @@ export default {
     },
   },
   created() {
-    console.log(this.loading);
-    setTimeout(this.fetchUsers(),300);
-    console.log(this.loading);
+    setTimeout(this.fetchUsers(), 300);
   },
 
   methods: {
+    GoDetails(Id) {
+      this.$route.params.type.push({ name: "Details", params: { id: Id } });
+    },
+     DeleteUser(Id) {
+       axios.delete(`https://ynov-front.herokuapp.com/api/users/${Id}`);
+      this.fetchUsers();
+    },
     sort(sortby) {
       if (sortby === this.sortBy) {
         if (this.sortDirection === "desc") {
@@ -158,13 +191,17 @@ export default {
       this.sortBy = sortby;
     },
     fetchUsers() {
-      this.loading=true;
-      
+      this.loading = true;
+
       axios("https://ynov-front.herokuapp.com/api/users").then(
         ({ data: { data } }) => {
-          console.log(data)
+          console.log(data);
           this.nonFilteredUsers = data.map((user) => ({
-            age: new Date(Date.now() - new Date(user.birthDate).getTime()).getFullYear() - 1970,
+            id: user._id,
+            age:
+              new Date(
+                Date.now() - new Date(user.birthDate).getTime()
+              ).getFullYear() - 1970,
             name: `${user.firstName} ${user.lastName}`,
             email: user.email,
             phone: user.phone,
@@ -172,9 +209,8 @@ export default {
             avatar: user.avatarUrl,
           }));
         }
-      )
-      this.loading=false;
-
+      );
+      this.loading = false;
     },
   },
 };
