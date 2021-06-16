@@ -33,7 +33,9 @@
         <table id="tbl-users" class="table table-hover">
           <thead>
             <tr>
-              <th />
+              <th >
+                <button onpress={}></button>
+              </th>
               <th
                 :class="[sortBy === 'name' ? sortDirection : '']"
                 @click="sort('name')"
