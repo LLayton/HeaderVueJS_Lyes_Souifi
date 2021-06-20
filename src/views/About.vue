@@ -1,3 +1,20 @@
+<style>
+.modal-mask {
+  position: fixed;
+  z-index: 9998;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: table;
+  transition: opacity 0.3s ease;
+}
+.modal-wrapper {
+  display: table-cell;
+  vertical-align: middle;
+}
+</style>
 <template>
   <div class="container-fluid">
     <div>
@@ -6,6 +23,14 @@
           <h1>VueJS example</h1>
 
           <div class="row">
+            <div class="col-md-4">
+              <input
+                type="button"
+                class="btn btn-success"
+                @click="openModal"
+                value="Ajouter un utilisateur"
+              />
+            </div>
             <div class="col-md-4">
               <button class="btn btn-primary" @click="fetchUsers">
                 Fetch all users
@@ -24,6 +49,9 @@
             <div class="col-md-4">
               <span class="lead">{{ filteredList.length }} lignes</span>
             </div>
+            <div class="col-md-4">
+              <span class="lead">{{ filteredList.length }} lignes</span>
+            </div>
           </div>
         </div>
       </div>
@@ -33,8 +61,8 @@
         <table id="tbl-users" class="table table-hover">
           <thead>
             <tr>
-              <th >
-                <button onpress={}></button>
+              <th>
+                <button onpress="{}"></button>
               </th>
               <th
                 :class="[sortBy === 'name' ? sortDirection : '']"
@@ -62,6 +90,7 @@
               </th>
               <th>Gender</th>
               <th>Modifier</th>
+              <th>Supptimer</th>
             </tr>
           </thead>
           <tbody>
@@ -79,20 +108,114 @@
               <td>{{ user.age }}</td>
               <td>{{ user.gender }}</td>
               <td>
-                <router-link :to="{ path: '/users/update/' + user.id }"
-                  ><button class="btn btn-warning">
-                    Modifier
-                  </button></router-link
+                <router-link :to="{ path: '/users/update/' + user.id }">
+                  <button class="btn btn-warning">Modifier</button></router-link
                 >
               </td>
               <td>
-                <button class="btn btn-warning" @click="DeleteUser(user.id)">
+                <button class="btn btn-danger" @click="DeleteUser(user.id)">
                   Suprimer
                 </button>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+      <div v-if="MonModal">
+        <transition name="modal">
+          <div class="modal-mask">
+            <div class="modal-wrapper">
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header row">
+                    <button
+                      type="button"
+                      class="btn btn-danger"
+                      @click="MonModal = false"
+                      value="X"
+                    ></button>
+                    <h6 class="modal-title">{{ Titre }}</h6>
+
+                    <div class="modal-body">
+                      <div class="form-group">
+                        <label for="urlAvatar">Url Avatar</label>
+                        <input
+                          type="text"
+                          class="form-control text-center"
+                          placeholder="Saisir l'url"
+                          v-model="urlAvatar"
+                          id="urlAvatar"
+                        />
+                        <label for="nom">Noms</label>
+                        <input
+                          type="text"
+                          class="form-control text-center"
+                          placeholder="Saisir votre noms"
+                          v-model="AddFirstName"
+                          id="Firstnoms"
+                        />
+                        <label for="Lastname">Prénoms</label>
+                        <input
+                          type="text"
+                          class="form-control text-center"
+                          placeholder="Saisir le prénom"
+                          v-model="AddLastName"
+                          id="LastName"
+                        />
+                        <label for="tel">téléphone</label>
+                        <input
+                          type="text"
+                          class="form-control text-center"
+                          placeholder="Saisir le numéro de téléphone"
+                          v-model="AddTel"
+                          id="tel"
+                        />
+                        <label for="nom">naissance</label>
+                        <input
+                          type="date"
+                          class="form-control text-center"
+                          placeholder="Saisir la date"
+                          v-model="AddNaissance"
+                          id="tel"
+                        />                      
+                        <label for="mail">mail</label>
+                        <input
+                          type="text"
+                          class="form-control text-center"
+                          placeholder="Saisir le mail"
+                          v-model="AddMail"
+                          id="mail"
+                        />
+                        <label for="gender">Genre</label>
+                        <Listview
+                          :options="['male', 'female']"
+                          v-model="AddGender"
+                        />
+                        <label for="details">Détails</label>
+                        <textarea
+                          class="form-control"
+                          rows="5"
+                          v-model="Adddetails"
+                          name="details"
+                          id="details"
+                        ></textarea>
+                        <div align="center" class="row">
+                          <input type="hidden" />
+                          <input
+                            type="button"
+                            class="btn-success"
+                            @click="submitData"
+                            value="Ajouter utilisateur"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </transition>
       </div>
     </div>
   </div>
@@ -115,7 +238,18 @@ export default {
       sortDirection: "asc",
       search: "",
       loading: false,
-      modalShow: false,
+      name: "",
+      MonModal: false,
+      actionButton: "Insert",
+      Titre: "Ajouter un utilisateur",
+      AddFirstName: "",
+      AddLastName: "",
+      AddTel: "",
+      AddMail: "",
+      AddGender: "",
+      AddNaissance: "",
+      urlAvatar: "",
+      Adddetails: "",
     };
   },
   computed: {
@@ -170,11 +304,42 @@ export default {
   },
 
   methods: {
+    async submitData() {
+      try {
+        // eslint-disable-next-line no-underscore-dangle
+        if (this.urlAvatar==="") {
+          this.urlAvatar="https://about.gitlab.com/images/press/logo/jpg/gitlab-logo-gray-stacked-rgb.jpg";
+        }
+
+        const data=await axios.post(
+          `https://ynov-front.herokuapp.com/api/users`,
+          {            
+            "firstName":this.AddFirstName,
+            "lastName":this.AddLastName,
+            "email":this.AddMail,
+            "phone": this.AddTel,
+            "gender": this.AddGender,
+            "avatarUrl": this.urlAvatar,
+            "details": this.Adddetails,
+            "birthDate": this.AddNaissance,
+          }
+        );
+        console.log(data)
+      } catch (e) {
+        this.$emit("notification", { type: "danger", message: e.message });
+      }
+    },
+    openModal() {
+      this.noms = "";
+      this.actionButton = "Insert";
+      this.Titre = "Ajout utilisateur";
+      this.MonModal = true;
+    },
     GoDetails(Id) {
       this.$route.params.type.push({ name: "Details", params: { id: Id } });
     },
-     DeleteUser(Id) {
-       axios.delete(`https://ynov-front.herokuapp.com/api/users/${Id}`);
+    DeleteUser(Id) {
+      axios.delete(`https://ynov-front.herokuapp.com/api/users/${Id}`);
       this.fetchUsers();
     },
     sort(sortby) {
@@ -197,7 +362,6 @@ export default {
 
       axios("https://ynov-front.herokuapp.com/api/users").then(
         ({ data: { data } }) => {
-          console.log(data);
           this.nonFilteredUsers = data.map((user) => ({
             id: user._id,
             age:
