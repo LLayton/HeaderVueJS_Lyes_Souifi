@@ -49,9 +49,6 @@
             <div class="col-md-4">
               <span class="lead">{{ filteredList.length }} lignes</span>
             </div>
-            <div class="col-md-4">
-              <span class="lead">{{ filteredList.length }} lignes</span>
-            </div>
           </div>
         </div>
       </div>
@@ -325,8 +322,10 @@ export default {
           }
         );
         console.log(data)
+        this.$swal('Hello Vue')
+        this.MonModal=false;
       } catch (e) {
-        this.$emit("notification", { type: "danger", message: e.message });
+        console.log(e)
       }
     },
     openModal() {
